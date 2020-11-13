@@ -1,8 +1,6 @@
 import torch
 from torch import nn
-from blocks.bottleneck import BottleNeck
-from modules.encoder import ResNet
-from modules.enco import Encoder
+from modules.encoder import Encoder
 
 from modules.decoder import Decoder
 from modules.edge_guidance_module import EdgeGuidanceModule
@@ -15,7 +13,6 @@ class ET_Net(nn.Module):
     """
     def __init__(self):
         super().__init__()
-        # self.encoder = ResNet(BottleNeck, [3, 4, 6, 3]) # ResNet50
         self.encoder = Encoder()
         self.decoder = Decoder()
         self.egm = EdgeGuidanceModule()
