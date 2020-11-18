@@ -11,9 +11,9 @@ class Encoder(ResNet):
         x = self.maxpool(x)
 
         output_1 = self.layer1(x)
-        output_2 = self.layer2(x)
-        output_3 = self.layer3(x)
-        output_4 = self.layer4(x)
+        output_2 = self.layer2(output_1)
+        output_3 = self.layer3(output_2)
+        output_4 = self.layer4(output_3)
 
         return output_1, output_2, output_3, output_4
 

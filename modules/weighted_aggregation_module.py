@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from blocks.weighted_block import WeightedBlock
+from torchvision.models.resnet import Bottleneck
 from args import ARGS
 
 class WeightedAggregationModule(nn.Module):
@@ -8,11 +9,11 @@ class WeightedAggregationModule(nn.Module):
     """
     def __init__(self):
         super().__init__()
-        in_1_channels = ARGS['decoder'][0]
-        in_2_channels = ARGS['decoder'][1]
-        in_3_channels = ARGS['decoder'][2]
-        in_e_channels = ARGS['egm'][1]
-        out_1_channels = ARGS['wam'][0]
+        in_1_channels = ARGS['decoder'][0] * Bottleneck.expansion
+        in_2_channels = ARGS['decoder'][1] * Bottleneck.expansion
+        in_3_channels = ARGS['decoder'][2] * Bottleneck.expansion
+        in_e_channels = ARGS['egm'][1] * Bottleneck.expansion
+        out_1_channels = ARGS['wam'][0] * Bottleneck.expansion
         out_channels = ARGS['wam'][1]
 
         self.weight_1 = nn.Sequential(

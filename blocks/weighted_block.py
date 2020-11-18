@@ -12,7 +12,7 @@ class WeightedBlock(nn.Module):
         )
 
         self.weight = nn.Sequential(
-            nn.AvgPool2d(kernel_size=2),
+            nn.AdaptiveAvgPool2d(output_size=(1, 1)),
             nn.Conv2d(out_channels, out_channels, kernel_size=1, bias=False), # 1x1
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),

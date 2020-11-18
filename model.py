@@ -26,9 +26,19 @@ class ET_Net(nn.Module):
         return edge_pred, pred
     
     def load_encoder_weight(self):
+        # One could get the pretrained weights via PyTorch official.
         self.encoder.load_state_dict(torch.load(ARGS['encoder_weight']))
-        print('+1s')
 
 if __name__ == "__main__":
     net = ET_Net()
     net.load_encoder_weight()
+    
+    net = net.cuda()
+    net.eval()
+    img = torch.randn((1, 3, 256, 256)).cuda()
+    out_edge, out = net(img)
+    print(len(out))
+    print(len(out[0]))
+    print(out[0].shape)
+    # print(net)
+    input('Press Enter to Continue...')

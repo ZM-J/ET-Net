@@ -17,7 +17,7 @@ class DecodingBlock(nn.Module):
             nn.Conv2d(low_channels, out_channels, kernel_size=1, bias=False), # 1x1
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, groups=out_channels, bias=False), # depthwise 3x3
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1, groups=out_channels, bias=False), # depthwise 3x3
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=1, bias=False), # 1x1
@@ -26,5 +26,7 @@ class DecodingBlock(nn.Module):
         )
 
     def forward(self, low_x, x):
+        print(low_x.size())
+        print(x.size())
         return self.output_conv(low_x + self.u(self.input_conv(x)))
     
