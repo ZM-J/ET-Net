@@ -8,10 +8,11 @@ from utils.get_dataset import get_dataset
 import time
 from torch.utils.data import DataLoader
 from utils.crop_prediction import get_test_patches, recompone_overlap
+from utils.metrics import calc_metrics
 from PIL import Image
 import os
 
-class TestProcess:
+class CalculateMetricProcess:
     def __init__(self):
         self.net = ET_Net()
 
@@ -20,18 +21,19 @@ class TestProcess:
         
         self.net.load_state_dict(torch.load(ARGS['weight']))
 
-        self.test_dataset = get_dataset(dataset_name=ARGS['dataset'], part='test')
+        self.metric_dataset = get_dataset(dataset_name=ARGS['dataset'], part='metric')
 
     def predict(self):
 
         start = time.time()
         self.net.eval()
-        test_dataloader = DataLoader(self.test_dataset, batch_size=1) # only support batch size = 1
+        metric_dataloader = DataLoader(self.metric_dataset, batch_size=1) # only support batch size = 1
         os.makedirs(ARGS['prediction_save_folder'], exist_ok=True)
-        for items in test_dataloader:
-            images, mask, filename = items['image'], items['mask'], items['filename']
+        y_true = []
+        y_pred = []
+        for items in metric_dataloader:
+            images, labels, mask = items['image'], items['label'], items['mask']
             images = images.float()
-            mask = mask.long()
             print('image shape:', images.size())
 
             image_patches, big_h, big_w = get_test_patches(images, ARGS['crop_size'], ARGS['stride_size'])
@@ -52,15 +54,17 @@ class TestProcess:
             test_results = torch.cat(test_results, dim=0)
             # merge
             test_results = recompone_overlap(test_results, ARGS['crop_size'], ARGS['stride_size'], big_h, big_w)
-            test_results = test_results[:, 1, :images.size(2), :images.size(3)] * mask
-            test_results = Image.fromarray(test_results[0].numpy())
-            test_results.save(os.path.join(ARGS['prediction_save_folder'], filename[0]))
-            print(f'Finish prediction for {filename[0]}')
-
+            test_results = test_results[:, 1, :images.size(2), :images.size(3)]
+            y_pred.append(test_results[mask == 1].reshape(-1))
+            y_true.append(labels[mask == 1].reshape(-1))
+        
+        y_pred = torch.cat(y_pred).numpy()
+        y_true = torch.cat(y_true).numpy()
+        calc_metrics(y_pred, y_true)
         finish = time.time()
 
-        print('Predicting time consumed: {:.2f}s'.format(finish - start))
+        print('Calculating metric time consumed: {:.2f}s'.format(finish - start))
 
 if __name__ == "__main__":
-    tp = TestProcess()
-    tp.predict()
+    cmp = CalculateMetricProcess()
+    cmp.predict()

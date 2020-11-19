@@ -7,8 +7,8 @@ import time
 import torch
 from torch.optim import Adam
 from torch.optim.lr_scheduler import LambdaLR
-from get_dataset import get_dataset
-from lovasz_losses import lovasz_softmax
+from utils.get_dataset import get_dataset
+from utils.lovasz_losses import lovasz_softmax
 import os
 
 from matplotlib import pyplot as plt
@@ -152,7 +152,11 @@ class TrainValProcess():
             self.net.state_dict()
             print(f'Finish training and validating epoch #{epoch+1}')
             if (epoch + 1) % ARGS['epoch_save'] == 0:
-                os.makedirs(ARGS['save_folder'], exist_ok=True)
-                torch.save(self.net.state_dict(), os.path.join(ARGS['save_folder'], f'epoch_{epoch+1}.pth'))
+                os.makedirs(ARGS['weight_save_folder'], exist_ok=True)
+                torch.save(self.net.state_dict(), os.path.join(ARGS['weight_save_folder'], f'epoch_{epoch+1}.pth'))
                 print(f'Model saved for epoch #{epoch+1}.')
         print('Finish training and validating.')
+
+if __name__ == "__main__":
+    tv = TrainValProcess()
+    tv.train_val()

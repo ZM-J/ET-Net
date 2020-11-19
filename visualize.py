@@ -4,7 +4,7 @@ from model import ET_Net
 from numpy.lib.twodim_base import mask_indices
 import torch
 from args import ARGS
-from get_dataset import get_dataset
+from utils.get_dataset import get_dataset
 import time
 from torch.utils.data import DataLoader
 

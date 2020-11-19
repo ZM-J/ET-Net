@@ -1,4 +1,4 @@
-from datasets.drive_dataset import DRIVEDataset, DRIVETestDataset
+from datasets.drive_dataset import DRIVEDataset, DRIVETestDataset, DRIVEMetricDataset
 
 def get_dataset(dataset_name, part):
     dataset_dict = {
@@ -15,10 +15,16 @@ def get_dataset(dataset_name, part):
                 edge_path='../datasets/DRIVE/val/edge',
                 need_enhance=False
             ),
-            'test': DRIVETestDataset( # TODO
+            'test': DRIVETestDataset(
                 data_path='../datasets/DRIVE/test/images',
-                need_enhance=False
-            )
+                mask_path='../datasets/DRIVE/test/mask',
+            ),
+            'metric': DRIVEMetricDataset(
+                data_path='../datasets/DRIVE/val/images',
+                label_path='../datasets/DRIVE/val/1st_manual',
+                edge_path='../datasets/DRIVE/val/edge',
+                mask_path='../datasets/DRIVE/val/mask',
+            ),
         }
     }
     return dataset_dict[dataset_name][part]
