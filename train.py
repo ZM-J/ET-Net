@@ -1,5 +1,6 @@
 from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from torch.nn.parallel import DataParallel
 from model import ET_Net
 from args import ARGS
 import time
@@ -10,6 +11,8 @@ from get_dataset import get_dataset
 from lovasz_losses import lovasz_softmax
 import os
 
+from matplotlib import pyplot as plt
+
 class TrainValProcess():
     def __init__(self):
         self.net = ET_Net()
@@ -18,7 +21,7 @@ class TrainValProcess():
         else:
             self.net.load_encoder_weight()
         if (ARGS['gpu']):
-            self.net = self.net.cuda()
+            self.net = DataParallel(module=self.net.cuda())
         
         self.train_dataset = get_dataset(dataset_name=ARGS['dataset'], part='train')
         self.val_dataset = get_dataset(dataset_name=ARGS['dataset'], part='val')
@@ -26,21 +29,20 @@ class TrainValProcess():
         self.optimizer = Adam(self.net.parameters(), lr=ARGS['lr'])
         # Use / to get an approximate result, // to get an accurate result
         total_iters = len(self.train_dataset) // ARGS['batch_size'] * ARGS['num_epochs']
-        self.lr_scheduler = LambdaLR(self.optimizer, lr_lambda=lambda iter: ARGS['lr'] * (1 - iter / total_iters) ** ARGS['scheduler_power'])
+        self.lr_scheduler = LambdaLR(self.optimizer, lr_lambda=lambda iter: (1 - iter / total_iters) ** ARGS['scheduler_power'])
         self.writer = SummaryWriter()
 
     def train(self, epoch):
 
         start = time.time()
         self.net.train()
-        train_dataloader = DataLoader(self.train_dataset, batch_size=ARGS['batch_size'])
+        train_dataloader = DataLoader(self.train_dataset, batch_size=ARGS['batch_size'], shuffle=False)
         epoch_loss = 0.
         for batch_index, items in enumerate(train_dataloader):
             images, labels, edges = items['image'], items['label'], items['edge']
-            print(type(images))
-            images = torch.Tensor(images)
-            labels = torch.LongTensor(labels)
-            edges = torch.LongTensor(edges)
+            images = images.float()
+            labels = labels.long()
+            edges = edges.long()
 
             if ARGS['gpu']:
                 labels = labels.cuda()
@@ -49,6 +51,9 @@ class TrainValProcess():
 
             self.optimizer.zero_grad()
             outputs_edge, outputs = self.net(images)
+            # print('output edge min:', outputs_edge[0, 1].min(), ' max: ', outputs_edge[0, 1].max())
+            # plt.imshow(outputs_edge[0, 1].detach().cpu().numpy() * 255, cmap='gray')
+            # plt.show()
             loss_edge = lovasz_softmax(outputs_edge, edges) # Lovasz-Softmax loss
             loss_seg = lovasz_softmax(outputs, labels) # 
             loss = ARGS['combine_alpha'] * loss_seg + (1 - ARGS['combine_alpha']) * loss_edge
@@ -57,11 +62,19 @@ class TrainValProcess():
             self.lr_scheduler.step()
 
             n_iter = (epoch - 1) * len(train_dataloader) + batch_index + 1
+            
+            pred = torch.max(outputs, dim=1)[1]
+            iou = torch.sum(pred & labels) / (torch.sum(pred | labels) + 1e-6)
 
-            print('Training Epoch: {epoch} [{trained_samples}/{total_samples}]\tL_edge: {:0.4f}\tL_seg: {:0.4f}\tL_all: {:0.4f}'.format(
+            # print('edge min:', edges.min(), ' max: ', edges.max())
+            # print('output edge min:', outputs_edge.min(), ' max: ', outputs_edge.max())
+
+            print('Training Epoch: {epoch} [{trained_samples}/{total_samples}]\tL_edge: {:0.4f}\tL_seg: {:0.4f}\tL_all: {:0.4f}\tIoU: {:0.4f}\tLR: {:0.4f}'.format(
                 loss_edge.item(),
                 loss_seg.item(),
                 loss.item(),
+                iou.item(),
+                self.optimizer.param_groups[0]['lr'],
                 epoch=epoch,
                 trained_samples=batch_index * ARGS['batch_size'],
                 total_samples=len(train_dataloader.dataset)
@@ -92,23 +105,28 @@ class TrainValProcess():
         epoch_loss = 0.
         for batch_index, items in enumerate(val_dataloader):
             images, labels, edges = items['image'], items['label'], items['edge']
-            images = torch.Tensor(images)
-            labels = torch.LongTensor(labels)
-            edges = torch.LongTensor(edges)
+            # print('label min:', labels[0].min(), ' max: ', labels[0].max())
+            # print('edge min:', labels[0].min(), ' max: ', labels[0].max())
 
             if ARGS['gpu']:
                 labels = labels.cuda()
                 images = images.cuda()
                 edges = edges.cuda()
+            
+            print('image shape:', images.size())
 
             with torch.no_grad():
                 outputs_edge, outputs = self.net(images)
                 loss_edge = lovasz_softmax(outputs_edge, edges) # Lovasz-Softmax loss
                 loss_seg = lovasz_softmax(outputs, labels) # 
                 loss = ARGS['combine_alpha'] * loss_seg + (1 - ARGS['combine_alpha']) * loss_edge
+            
+            pred = torch.max(outputs, dim=1)[1]
+            iou = torch.sum(pred & labels) / (torch.sum(pred | labels) + 1e-6)
 
-            print('Validating Epoch: {epoch} [{val_samples}/{total_samples}]\tLoss: {:0.4f}'.format(
+            print('Validating Epoch: {epoch} [{val_samples}/{total_samples}]\tLoss: {:0.4f}\tIoU: {:0.4f}'.format(
                 loss.item(),
+                iou.item(),
                 epoch=epoch,
                 val_samples=batch_index * val_batch_size,
                 total_samples=len(val_dataloader.dataset)
@@ -134,5 +152,7 @@ class TrainValProcess():
             self.net.state_dict()
             print(f'Finish training and validating epoch #{epoch+1}')
             if (epoch + 1) % ARGS['epoch_save'] == 0:
-                torch.save(self.net.state_dict(), os.path.join(ARGS['save_folder'], f'/models/epoch_{epoch+1}.pth'))
+                os.makedirs(ARGS['save_folder'], exist_ok=True)
+                torch.save(self.net.state_dict(), os.path.join(ARGS['save_folder'], f'epoch_{epoch+1}.pth'))
+                print(f'Model saved for epoch #{epoch+1}.')
         print('Finish training and validating.')

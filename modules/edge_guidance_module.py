@@ -35,7 +35,8 @@ class EdgeGuidanceModule(nn.Module):
         self.output_edge_conv = nn.Sequential(
             nn.Conv2d(2*out_edge_channels, out_edge_channels, kernel_size=1, bias=False), # 1x1
             nn.BatchNorm2d(out_edge_channels),
-            nn.ReLU(inplace=True),
+            # nn.ReLU(inplace=True), # No ReLU because of incoming softmax
+            nn.Softmax(dim=1)
         )
 
         self.output_conv = nn.Sequential(

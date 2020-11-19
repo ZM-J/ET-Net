@@ -1,4 +1,4 @@
-from drive_dataset import DRIVEDataset, DRIVETestDataset
+from datasets.drive_dataset import DRIVEDataset, DRIVETestDataset
 
 def get_dataset(dataset_name, part):
     dataset_dict = {

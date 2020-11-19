@@ -4,11 +4,10 @@ ARGS = {
     'decoder': [256, 128, 64],
     'egm': [2, 64],
     'wam': [64, 2],
-    'crop_size': 128,
     'encoder_weight': r"../resnet50_weight/resnet50-19c8e357.pth",
     'gpu': True,
     # 'weight': None,
-    'weight': 'weights/epoch_270.pth', # weights
+    'weight': 'weights/epoch_300.pth', # weights
     # 'weight': 'weights_/epoch_300.pth', # weights
     'dataset': 'DRIVE',
     'num_epochs': 300,

@@ -28,7 +28,8 @@ class WeightedAggregationModule(nn.Module):
         self.output_conv = nn.Sequential(
             nn.Conv2d(out_1_channels + in_e_channels, out_channels, kernel_size=1), # 1x1
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True),
+            # nn.ReLU(inplace=True),
+            nn.Softmax(dim=1)
         )
 
     def forward(self, x_1, x_2, x_3, x_e):

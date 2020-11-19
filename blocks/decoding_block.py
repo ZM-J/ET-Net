@@ -26,7 +26,5 @@ class DecodingBlock(nn.Module):
         )
 
     def forward(self, low_x, x):
-        print(low_x.size())
-        print(x.size())
         return self.output_conv(low_x + self.u(self.input_conv(x)))
     
