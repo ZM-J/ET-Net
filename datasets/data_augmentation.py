@@ -1,6 +1,7 @@
 from PIL import Image, ImageEnhance
 import numpy as np
 from args import ARGS
+import cv2
 
 def data_augmentation(img, label, edge):
     r_img, r_label, r_edge = img, label, edge
@@ -8,7 +9,7 @@ def data_augmentation(img, label, edge):
     r_img, r_label, r_edge = _random_scale(r_img, r_label, r_edge)
     r_img, r_label, r_edge = _random_rotation(r_img, r_label, r_edge)
     r_img = _random_color_jitter(r_img)
-    return r_img
+    return r_img, r_label, r_edge
 
 def _random_mirror(img, label, edge):
     r_img, r_label, r_edge = img, label, edge
@@ -66,3 +67,13 @@ def _random_crop(img, label, edge):
     r_label = r_label.crop((zx, zy, zx+r_width, zy+r_height))
     r_edge = r_edge.crop((zx, zy, zx+r_width, zy+r_height))
     return r_img, r_label, r_edge
+
+def CLAHE(img):
+    r_img = np.array(img)
+    r, g, b = cv2.split(r_img)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    r = clahe.apply(r)
+    g = clahe.apply(g)
+    b = clahe.apply(b)   
+    r_img = cv2.merge([r,g,b])
+    return Image.fromarray(r_img)
