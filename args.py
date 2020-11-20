@@ -9,9 +9,9 @@ ARGS = {
     'encoder_weight': "../resnet50_weight/resnet50-19c8e357.pth",
     'gpu': True,
     # 'weight': None,
-    'weight': 'weights/epoch_270.pth', # weights
+    'weight': 'weights/epoch_300.pth', # weights
     # 'weight': 'weights_/epoch_300.pth', # weights
-    'dataset': 'DRIVE',
+    'dataset': 'CHASEDB1',
     'num_epochs': 300,
     'epoch_save': 30,
     'batch_size': 4,

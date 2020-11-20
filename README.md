@@ -14,25 +14,27 @@ ii. model prediction (segmentation) will be more robust if sliding window techni
 
 1. Change the contents of `utils/get_dataset.py` to your directories
 
-2. Run `get_pretrained_weight_address.py` to get pretrained weights for ResNet50 (E-Blocks)
+2. Run `utils/get_edges.py` to get edges of labels in your dataset
 
-3. Change settings in `args.py`, including dataset chosen to train, batch size, etc.
+3. Run `utils/get_pretrained_weight_address.py` to get pretrained weights for ResNet50 (E-Blocks)
 
-4. Run `train.py` to train ET-Net on some dataset
+4. Change settings in `args.py`, including dataset chosen to train, batch size, etc.
 
-5. Run `visualize.py` to observe input, label, prediction, and edge prediction
+5. Run `train.py` to train ET-Net on some dataset
 
-6. Run `calculate_metrics.py` to get metrics (AUC, accuracy, mIoU) on validate dataset
+6. Run `visualize.py` to observe input, label, prediction, and edge prediction
 
-7. Run `test.py` to predict segmentation results using ET-Net
+7. Run `calculate_metrics.py` to get metrics (AUC, accuracy, mIoU) on validate dataset
+
+8. Run `test.py` to predict segmentation results using ET-Net
 
 ## Results
 
 metric|DRIVE|CHASE-DB1|MC|LUNA
 ---|---|---|---|---
-AUC|96.25|???|???|???
-Acc.|95.35|???|???|???
-mIoU|94.80|???|???|???
+AUC|96.25|96.49|???|???
+Acc.|95.35|97.07|???|???
+mIoU|94.80|96.93|???|???
 
 ##  TODO
 
