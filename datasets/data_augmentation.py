@@ -70,10 +70,10 @@ def _random_crop(img, label, edge):
 
 def CLAHE(img):
     r_img = np.array(img)
-    r, g, b = cv2.split(r_img)
+    r_img = cv2.cvtColor(r_img, cv2.COLOR_RGB2LAB)
+    r_img_l = r_img[:, :, 0] / 255.0 # Convert to range [0,1]
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-    r = clahe.apply(r)
-    g = clahe.apply(g)
-    b = clahe.apply(b)   
-    r_img = cv2.merge([r,g,b])
+    r_img_l = clahe.apply(r_img_l)
+    r_img[:, :, 0] = (r_img_l * 255.0).astype(np.uint8)
+    r_img = cv2.cvtColor(r_img, cv2.COLOR_LAB2RGB)
     return Image.fromarray(r_img)

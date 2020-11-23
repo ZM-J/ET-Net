@@ -21,8 +21,10 @@ def calc_metrics(pred_vec, label_vec):
     if float(np.sum(confusion)) != 0:
         accuracy = float(confusion[0, 0] + confusion[1, 1]) / float(np.sum(confusion))
     print(f'Accuracy: {accuracy:.6f}')
-    mIoU = confusion[0, 0] / (confusion[0, 0] + confusion[0, 1] + confusion[1, 0])
+    mIoU = confusion[1, 1] / (confusion[1, 1] + confusion[0, 1] + confusion[1, 0])
     print(f'mIoU: {mIoU:.6f}')
+    dice_loss = 2 * confusion[1, 1] / (2 * confusion[1, 1] + confusion[0, 1] + confusion[1, 0])
+    print(f'Dice loss: {dice_loss:.6f}')
 
     plt.plot(fpr, tpr, '-')
     plt.title('ROC curve', fontsize=14)

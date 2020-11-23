@@ -10,7 +10,6 @@ ARGS = {
     'gpu': True,
     # 'weight': None,
     'weight': 'weights/epoch_300.pth', # weights
-    # 'weight': 'weights_/epoch_300.pth', # weights
     'dataset': 'CHASEDB1',
     'num_epochs': 300,
     'epoch_save': 30,
